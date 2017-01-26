@@ -24,7 +24,7 @@ require:
 ####  Add the routes to your `routes` file
 
 ```
-# Secure routes
+# Mail routes
 *       /               module:mail
 ```
 
