@@ -1,5 +1,8 @@
 package helpers.mail;
 
+import freemarker.template.DefaultObjectWrapper;
+import helpers.mail.freemarker.MapResourceBundle;
+import helpers.mail.freemarker.ResourceBundleModel;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -10,6 +13,7 @@ import play.classloading.enhancers.LocalvariablesNamesEnhancer.LocalVariablesSup
 import play.exceptions.MailException;
 import play.exceptions.UnexpectedException;
 import play.i18n.Lang;
+import play.i18n.Messages;
 import play.libs.F;
 import play.libs.F.T4;
 import play.libs.Mail;
@@ -416,6 +420,15 @@ public class Mailer implements LocalVariablesSupport {
         infos.set(map);
     }
 
+    public static void setAddMessages(Boolean addMessages) {
+        HashMap<String, Object> map = infos.get();
+        if (map == null) {
+            throw new UnexpectedException("Mailer not instrumented ?");
+        }
+        map.put("addMessages", addMessages);
+        infos.set(map);
+    }
+
     @SuppressWarnings("unchecked")
     public static Future<Boolean> send(Map<String, Object> params) {
         try {
@@ -446,8 +459,21 @@ public class Mailer implements LocalVariablesSupport {
                 subject = TemplateUtil.render(subjectTemplate, params, locale);
             }
 
-            // Template rendering
-            String body = TemplateUtil.render(bodyTemplate, params, locale);
+            // Render template
+            Map<String, Object> dataModel = new HashMap<>();
+            dataModel.putAll(params);
+
+            Boolean addMessages = (Boolean) infos.get().get("addMessages");
+            if (addMessages != null && addMessages) {
+                Properties properties = Messages.all(locale.toString());
+                Map<String, Object> messages = new HashMap<>();
+                for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                    messages.put((String) entry.getKey(), entry.getValue());
+                }
+                dataModel.put("messages", new ResourceBundleModel(new MapResourceBundle(messages), new DefaultObjectWrapper()));
+            }
+
+            String body = TemplateUtil.render(bodyTemplate, dataModel, locale);
 
             // Content type
             String contentType = (String) infos.get().get("contentType");
