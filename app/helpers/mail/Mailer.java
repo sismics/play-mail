@@ -1,5 +1,6 @@
 package helpers.mail;
 
+import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import helpers.mail.freemarker.MapResourceBundle;
 import helpers.mail.freemarker.ResourceBundleModel;
@@ -56,9 +57,9 @@ public class Mailer implements LocalVariablesSupport {
         if (map == null) {
             throw new UnexpectedException("Mailer not instrumented ?");
         }
-	if(args.length != 0){
-	    subject = String.format(subject, args);
-	}
+        if(args.length != 0){
+            subject = String.format(subject, args);
+        }
         map.put("subject", subject);
         infos.set(map);
     }
@@ -137,8 +138,8 @@ public class Mailer implements LocalVariablesSupport {
         infos.set(map);
     }
 
-   @SuppressWarnings("unchecked")
-   public static void attachDataSource(DataSource dataSource, String name, String description, String disposition) {
+    @SuppressWarnings("unchecked")
+    public static void attachDataSource(DataSource dataSource, String name, String description, String disposition) {
         HashMap<String, Object> map = infos.get();
         if (map == null) {
             throw new UnexpectedException("Mailer not instrumented ?");
@@ -151,30 +152,30 @@ public class Mailer implements LocalVariablesSupport {
         datasourceList.add(F.T4(dataSource, name, description, disposition));
         infos.set(map);
     }
-    
+
     public static void attachDataSource(DataSource dataSource, String name, String description){
-       attachDataSource(dataSource, name, description, EmailAttachment.ATTACHMENT);
+        attachDataSource(dataSource, name, description, EmailAttachment.ATTACHMENT);
     }
-    
-	public static String attachInlineEmbed(DataSource dataSource, String name) {
-		HashMap<String, Object> map = infos.get();
-		if (map == null) {
-			throw new UnexpectedException("Mailer not instrumented ?");
-		}
-		
-		InlineImage inlineImage = new InlineImage(dataSource);
-		
-		Map<String, InlineImage> inlineEmbeds = (Map<String, InlineImage>) map.get("inlineEmbeds");
-		if (inlineEmbeds == null) {
-			inlineEmbeds = new HashMap<String, InlineImage>();
-			map.put("inlineEmbeds", inlineEmbeds);
-		}
-		
-		inlineEmbeds.put(name, inlineImage);
-		infos.set(map);
-		
-		return "cid:" + inlineImage.cid;
-	}
+
+    public static String attachInlineEmbed(DataSource dataSource, String name) {
+        HashMap<String, Object> map = infos.get();
+        if (map == null) {
+            throw new UnexpectedException("Mailer not instrumented ?");
+        }
+
+        InlineImage inlineImage = new InlineImage(dataSource);
+
+        Map<String, InlineImage> inlineEmbeds = (Map<String, InlineImage>) map.get("inlineEmbeds");
+        if (inlineEmbeds == null) {
+            inlineEmbeds = new HashMap<String, InlineImage>();
+            map.put("inlineEmbeds", inlineEmbeds);
+        }
+
+        inlineEmbeds.put(name, inlineImage);
+        infos.set(map);
+
+        return "cid:" + inlineImage.cid;
+    }
 
     public static void setContentType(String contentType) {
         HashMap<String, Object> map = infos.get();
@@ -198,7 +199,7 @@ public class Mailer implements LocalVariablesSupport {
         map.put("from", from);
         infos.set(map);
     }
-    
+
     /**
      * Can be of the form xxx &lt;m@m.com&gt;
      *
@@ -220,7 +221,7 @@ public class Mailer implements LocalVariablesSupport {
         private final DataSource dataSource;
 
         public InlineImage(DataSource dataSource) {
-        	this(null, dataSource);
+            this(null, dataSource);
         }
 
         public InlineImage(String cid, DataSource dataSource) {
@@ -237,7 +238,7 @@ public class Mailer implements LocalVariablesSupport {
             return this.dataSource;
         }
     }
-    
+
     private static class VirtualFileDataSource implements DataSource {
         private final VirtualFile virtualFile;
 
@@ -284,13 +285,13 @@ public class Mailer implements LocalVariablesSupport {
             return this.virtualFile.equals(rhs.virtualFile);
         }
     }
-    
+
     public static String getEmbedddedSrc(String urlString, String name) {
         HashMap<String, Object> map = infos.get();
         if (map == null) {
             throw new UnexpectedException("Mailer not instrumented ?");
         }
-        
+
         DataSource dataSource = null;
         URL url = null;
 
@@ -465,12 +466,12 @@ public class Mailer implements LocalVariablesSupport {
 
             Boolean addMessages = (Boolean) infos.get().get("addMessages");
             if (addMessages != null && addMessages) {
-                Properties properties = Messages.all(locale.toString());
+                Properties properties = Messages.all(getExistingLocale(locale.toString()));
                 Map<String, Object> messages = new HashMap<>();
                 for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                     messages.put((String) entry.getKey(), entry.getValue());
                 }
-                dataModel.put("messages", new ResourceBundleModel(new MapResourceBundle(messages), new DefaultObjectWrapper()));
+                dataModel.put("messages", new ResourceBundleModel(new MapResourceBundle(messages), new DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)));
             }
 
             String body = TemplateUtil.render(bodyTemplate, dataModel, locale);
@@ -506,15 +507,15 @@ public class Mailer implements LocalVariablesSupport {
                     HtmlEmail htmlEmail = new HtmlEmail();
                     htmlEmail.setHtmlMsg(body);
                     email = htmlEmail;
-                    
+
                     Map<String, InlineImage> inlineEmbeds = (Map<String, InlineImage>) infos.get().get("inlineEmbeds");
                     if (inlineEmbeds != null) {
                         for (Map.Entry<String, InlineImage> entry : inlineEmbeds.entrySet()) {
-	                    	htmlEmail.embed(entry.getValue().getDataSource(), entry.getKey(), entry.getValue().getCid());
-	                    }
+                            htmlEmail.embed(entry.getValue().getDataSource(), entry.getKey(), entry.getValue().getCid());
+                        }
                     }
                 }
-                
+
                 MultiPartEmail multiPartEmail = (MultiPartEmail) email;
                 List<EmailAttachment> objectList = (List<EmailAttachment>) infos.get().get("attachments");
                 if (objectList != null) {
@@ -627,5 +628,30 @@ public class Mailer implements LocalVariablesSupport {
             Logger.error(e, "Error while waiting Mail.send result");
         }
         return false;
+    }
+
+
+    /**
+     * Return a locale that is guaranteed to exist in Play.
+     * fr_FR -> fr
+     * zz -> en
+     *
+     * @param locale The locale to get
+     * @return The existing locale
+     */
+    public static String getExistingLocale(String locale) {
+        Set<String> locales = Messages.locales.keySet();
+
+        if (locales.contains(locale)) {
+            return locale;
+        }
+        if (locale.length() > 2) {
+            locale = locale.substring(0, 2);
+        }
+        if (locales.contains(locale)) {
+            return locale;
+        } else {
+            return Play.langs.get(0);
+        }
     }
 }
