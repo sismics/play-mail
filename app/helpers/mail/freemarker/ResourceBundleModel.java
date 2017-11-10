@@ -4,11 +4,9 @@ import freemarker.ext.beans.BeansWrapper;
 import freemarker.ext.beans.StringModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
+import play.i18n.Messages;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Overload {@link freemarker.ext.beans.ResourceBundleModel}
@@ -19,8 +17,8 @@ import java.util.ResourceBundle;
 public class ResourceBundleModel extends freemarker.ext.beans.ResourceBundleModel {
 
     /**
-     * Constructeur.
-     * 
+     * Constructor.
+     *
      * @param bundle
      * @param wrapper
      */
@@ -51,5 +49,11 @@ public class ResourceBundleModel extends freemarker.ext.beans.ResourceBundleMode
         } catch (Exception e) {
             throw new TemplateModelException(e.getMessage());
         }
+    }
+
+    public String format(String key, Object[] params) throws MissingResourceException {
+        Locale locale = getBundle().getLocale();
+        String message = ((ResourceBundle) object).getString(key);
+        return Messages.formatString(locale, message, params);
     }
 }
