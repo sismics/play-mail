@@ -1,4 +1,4 @@
-self: play -> mail 0.2.2
+self: play -> mail 0.3.0
 
 require:
     - play
