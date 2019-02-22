@@ -397,12 +397,30 @@ public class Mailer implements LocalVariablesSupport {
         infos.set(map);
     }
 
+    public static void setSubjectText(String subjectText) {
+        HashMap<String, Object> map = infos.get();
+        if (map == null) {
+            throw new UnexpectedException("Mailer not instrumented ?");
+        }
+        map.put("subjectText", subjectText);
+        infos.set(map);
+    }
+
     public static void setBodyTemplate(String bodyTemplate) {
         HashMap<String, Object> map = infos.get();
         if (map == null) {
             throw new UnexpectedException("Mailer not instrumented ?");
         }
         map.put("bodyTemplate", bodyTemplate);
+        infos.set(map);
+    }
+
+    public static void setBodyText(String bodyText) {
+        HashMap<String, Object> map = infos.get();
+        if (map == null) {
+            throw new UnexpectedException("Mailer not instrumented ?");
+        }
+        map.put("bodyText", bodyText);
         infos.set(map);
     }
 
@@ -447,8 +465,10 @@ public class Mailer implements LocalVariablesSupport {
             // Subject
             String subject = (String) infos.get().get("subject");
 
-            String bodyTemplate = (String) infos.get().get("bodyTemplate");
+            // Body
+            String body = (String) infos.get().get("body");
 
+            // Locale
             Locale locale = (Locale) infos.get().get("locale");
             if (locale == null) {
                 locale = Lang.getLocale();
@@ -457,10 +477,15 @@ public class Mailer implements LocalVariablesSupport {
             // Subject template
             final String subjectTemplate = (String) infos.get().get("subjectTemplate");
             if (subjectTemplate != null) {
-                subject = TemplateUtil.render(subjectTemplate, params, locale);
+                subject = TemplateUtil.renderTemplate(subjectTemplate, params, locale);
             }
 
-            // Render template
+            final String subjectText = (String) infos.get().get("subjectText");
+            if (subjectText != null) {
+                subject = TemplateUtil.renderText(subjectText, params, locale);
+            }
+
+            // Body template
             Map<String, Object> dataModel = new HashMap<>();
             dataModel.putAll(params);
 
@@ -474,7 +499,15 @@ public class Mailer implements LocalVariablesSupport {
                 dataModel.put("messages", new ResourceBundleModel(new MapResourceBundle(messages), new DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS)));
             }
 
-            String body = TemplateUtil.render(bodyTemplate, dataModel, locale);
+            String bodyTemplate = (String) infos.get().get("bodyTemplate");
+            if (bodyTemplate != null) {
+                body = TemplateUtil.renderTemplate(bodyTemplate, dataModel, locale);
+            }
+            
+            String bodyText = (String) infos.get().get("bodyText");
+            if (bodyText != null) {
+                body = TemplateUtil.renderText(bodyText, dataModel, locale);
+            }
 
             // Content type
             String contentType = (String) infos.get().get("contentType");

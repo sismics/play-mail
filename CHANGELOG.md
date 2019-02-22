@@ -1,4 +1,6 @@
 ## Change Log
+### Version 0.4.0 (2019-02-22)
+- Allow literal Freemarker templates
 ### Version 0.3.0 (2017-12-14)
 - MockMailer: allow storing all sent mails instead of only the last one
 ### Version 0.2.2 (2017-11-10)

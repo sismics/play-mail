@@ -1,5 +1,8 @@
 package helpers.mail;
 
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -32,17 +35,43 @@ public class TemplateUtil {
     /**
      * Render a Freemarker template.
      *
-     * @param templateName Template name
+     * @param templateName Template .ftl file name
      * @param params Parameters
      * @return Rendered template
      */
-    public static String render(String templateName, Map<String, Object> params, Locale locale) {
-        PlayTemplateLoader templateLoader = new PlayTemplateLoader();
-        configuration.setTemplateLoader(templateLoader);
+    public static String renderTemplate(String templateName, Map<String, Object> params, Locale locale) {
+        PlayTemplateLoader playTemplateLoader = new PlayTemplateLoader();
+        configuration.setTemplateLoader(playTemplateLoader);
         configuration.setLocalizedLookup(false);
 
         try {
             Template template = configuration.getTemplate(templateName);
+            StringWriter sb = new StringWriter();
+            template.setLocale(locale);
+            template.process(params, sb);
+            return sb.toString();
+        } catch (IOException | TemplateException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Render a Freemarker template.
+     *
+     * @param templateStr Template content
+     * @param params Parameters
+     * @return Rendered template
+     */
+    public static String renderText(String templateStr, Map<String, Object> params, Locale locale) {
+        PlayTemplateLoader playTemplateLoader = new PlayTemplateLoader();
+        StringTemplateLoader stringTemplateLoader = new StringTemplateLoader();
+        stringTemplateLoader.putTemplate("template", templateStr);
+        MultiTemplateLoader templateLoader = new MultiTemplateLoader(new TemplateLoader[] { stringTemplateLoader, playTemplateLoader });
+        configuration.setTemplateLoader(templateLoader);
+        configuration.setLocalizedLookup(false);
+
+        try {
+            Template template = configuration.getTemplate("template");
             StringWriter sb = new StringWriter();
             template.setLocale(locale);
             template.process(params, sb);

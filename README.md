@@ -8,7 +8,7 @@ This module for Play! Framework 1 applications allows sending emails with Freema
 
 ```
 require:
-    - mail -> mail 0.2
+    - mail -> mail 0.4.0
 
 repositories:
     - mail:
@@ -57,6 +57,19 @@ Messages will be available in Freemarker templates under the key:
 ```
 ${messages['message.name']}
 ```
+
+####  Render from templates
+Use either / a combination of the following:
+
+```java
+Mailer.setSubject("The Subject");
+Mailer.setSubjectTemplate("db/email/subject.ftl");
+Mailer.setSubjectText("Hello ${name}");
+Mailer.setBody("The Body");
+Mailer.setBodyTemplate("db/email/body.ftl");
+Mailer.setBodyText("Click here: ${link}");
+```
+
 # License
 
 This software is released under the terms of the Apache License, Version 2.0. See `LICENSE` for more
