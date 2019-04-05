@@ -1,4 +1,8 @@
-self: play -> mail 0.4.0
+self: play -> mail 1.0.0
+
+configurations:
+    - provided:
+          exclude: true
 
 require:
     - play

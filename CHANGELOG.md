@@ -1,4 +1,6 @@
 ## Change Log
+### Version 1.0.0 (2019-04-05)
+- Automate release
 ### Version 0.4.0 (2019-02-22)
 - Allow literal Freemarker templates
 ### Version 0.3.0 (2017-12-14)
