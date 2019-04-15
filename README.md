@@ -8,7 +8,7 @@ This module for Play! Framework 1 applications allows sending emails with Freema
 
 ```
 require:
-    - mail -> mail 1.0.0
+    - mail -> mail 1.1.0
 
 repositories:
     - sismicsNexusRaw:
