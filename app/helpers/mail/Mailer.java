@@ -15,9 +15,9 @@ import play.exceptions.MailException;
 import play.exceptions.UnexpectedException;
 import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.AppMail;
 import play.libs.F;
 import play.libs.F.T4;
-import play.libs.Mail;
 import play.libs.MimeTypes;
 import play.vfs.VirtualFile;
 
@@ -647,7 +647,7 @@ public class Mailer implements LocalVariablesSupport {
                 }
             }
 
-            return Mail.send(email);
+            return AppMail.send(email);
         } catch (EmailException ex) {
             throw new MailException("Cannot send email", ex);
         }
