@@ -1,4 +1,6 @@
 ## Change Log
+### Version 1.2.0 (2019-05-10)
+- Fix potential race condition
 ### Version 1.1.0 (2019-04-15)
 - Automate release
 ### Version 1.0.0 (2019-04-05)

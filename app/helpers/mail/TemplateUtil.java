@@ -30,6 +30,15 @@ public class TemplateUtil {
         configuration.setDefaultEncoding("UTF-8");
         configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         configuration.setLogTemplateExceptions(false);
+        MultiTemplateLoader templateLoader = getTemplateLoader();
+        configuration.setTemplateLoader(templateLoader);
+        configuration.setLocalizedLookup(false);
+    }
+
+    private static MultiTemplateLoader getTemplateLoader() {
+        PlayTemplateLoader playTemplateLoader = new PlayTemplateLoader();
+        StringTemplateLoader stringTemplateLoader = new StringTemplateLoader();
+        return new MultiTemplateLoader(new TemplateLoader[] { stringTemplateLoader, playTemplateLoader });
     }
 
     /**
@@ -40,10 +49,6 @@ public class TemplateUtil {
      * @return Rendered template
      */
     public static String renderTemplate(String templateName, Map<String, Object> params, Locale locale) {
-        PlayTemplateLoader playTemplateLoader = new PlayTemplateLoader();
-        configuration.setTemplateLoader(playTemplateLoader);
-        configuration.setLocalizedLookup(false);
-
         try {
             Template template = configuration.getTemplate(templateName);
             StringWriter sb = new StringWriter();
@@ -63,15 +68,13 @@ public class TemplateUtil {
      * @return Rendered template
      */
     public static String renderText(String templateStr, Map<String, Object> params, Locale locale) {
-        PlayTemplateLoader playTemplateLoader = new PlayTemplateLoader();
-        StringTemplateLoader stringTemplateLoader = new StringTemplateLoader();
-        stringTemplateLoader.putTemplate("template", templateStr);
-        MultiTemplateLoader templateLoader = new MultiTemplateLoader(new TemplateLoader[] { stringTemplateLoader, playTemplateLoader });
-        configuration.setTemplateLoader(templateLoader);
-        configuration.setLocalizedLookup(false);
+        String templateName = "template_" + templateStr.hashCode();
+        StringTemplateLoader stringTemplateLoader = (StringTemplateLoader) (((MultiTemplateLoader) configuration.getTemplateLoader()).getTemplateLoader(0));
+        stringTemplateLoader.putTemplate(templateName, templateStr);
+        stringTemplateLoader.putTemplate(templateName + "_en", templateStr); // Quickfix just in case
 
         try {
-            Template template = configuration.getTemplate("template");
+            Template template = configuration.getTemplate(templateName);
             StringWriter sb = new StringWriter();
             template.setLocale(locale);
             template.process(params, sb);
